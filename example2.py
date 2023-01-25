@@ -37,6 +37,7 @@ plt.show()
 wine = pd.read_csv(
     "https://gist.githubusercontent.com/tijptjik/9408623/raw/b237fa5848349a14a14e5d4107dc7897c21951f5/wine.csv")
 # print(wine.head())
+# print(wine.isnull().any())
 wine.drop("Wine", axis=1, inplace=True)
 print(wine.head())
 # ყველა სვეტი გადადის სტანდარტულ ფორმატში
@@ -48,3 +49,27 @@ mytsne = TSNE(n_components=2, perplexity=40, n_iter=2000)
 wine_embedding = mytsne.fit_transform(wine)
 plt.scatter(wine_embedding[:,0], wine_embedding[0:,1])
 plt.show()
+
+import numpy as np
+import pandas as pd
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+
+data = pd.DataFrame(pd.read_html("https://github.com/kb22/Heart-Disease-Prediction/blob/master/dataset.csv")[0])
+data.drop("Unnamed: 0", axis=1, inplace=True)
+
+# amovarchiot 4 sauketeso sveti, feature selection
+y = data['target']
+X = data.drop('target', axis=1)
+# selector = SelectKBest(score_func=f_classif, k=4)
+# selector.fit(X, y)
+# print(selector.get_feature_names_out())
+
+pipe = Pipeline(steps=[('selector', SelectKBest(score_func=f_classif)), ('algo', AdaBoostClassifier())])
+parameters = {"selector__k": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]}
+hybrid = GridSearchCV(pipe, parameters, scoring='accuracy', cv=2, n_jobs=-1)
+hybrid.fit(X, y)
+print(hybrid.best_params_)
+print(hybrid.best_score_)
